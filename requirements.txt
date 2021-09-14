@@ -1,0 +1,10 @@
+asgiref==3.4.1
+certifi==2021.5.30
+Django==3.2.7
+django-cors-headers==3.8.0
+djangorestframework==3.12.4
+PyMySQL==1.0.2
+PySocks @ file:///opt/concourse/worker/volumes/live/286ddfa9-f2fd-40b3-4c68-b14dbfd7c9fa/volume/pysocks_1605305809963/work
+pytz==2021.1
+sqlparse==0.4.1
+typing-extensions==3.10.0.2
