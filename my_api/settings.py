@@ -28,6 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "127.0.0.1"
+    "120.27.243.23"
 ]
 
 
@@ -59,6 +60,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ORIGIN_WHITELIST =[   
         "http://127.0.0.1:8888"
+        "http://120.27.243.23:8888"
       ] 
 CORS_ALLOW_METHODS = (
         'DELETE',
