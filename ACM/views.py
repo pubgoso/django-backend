@@ -32,36 +32,42 @@ def login(request):
     userName = request.data.get('username')
     password = request.data.get('password')
     # check_ = 
-    temp = Root.objects.filter(username=userName)
-    
+    temp = Alluser.objects.filter(username=userName)
+
     if not temp:
         return MyResponse(
             status=500,
             msg='用户名错误',
         )
     now_user = temp.values()[0]
-    print(now_user)
     if  now_user["password"] != password:
         return MyResponse(
             status=500,
             msg='密码错误'
         )
-    
+
     _type  = Alluser.objects.get(username = userName).type
 
     dataForm = {}
-
     for item in now_user:
         dataForm[item]=now_user[item]
 
-    dataForm["type"]=_type
+    if _type == 1:
+        dataForm["id"] = Root.objects.get(username=userName).id
 
-    print(dataForm)
+    if _type == 2:
+        dataForm["id"] = Mentor.objects.get(username=userName).id
+
+    if _type == 3:
+        dataForm["id"] = User.objects.get(username=userName).id
+
+    dataForm["type"] = _type
     return MyResponse(
         data=dataForm,
         status=200,
         msg='登陆成功'
     )
+    
     
 @api_view(['POST'])
 def addStudent(request):
@@ -192,9 +198,19 @@ def updateQuestion(request):
 
 @api_view(['GET'])
 def getAuditLog(request):
-    All = Auditlog.objects.filter(**request.data)
+    All = Auditlog.objects.all()
+    data = []
+    for item in All:
+        print(item)
+        data.append({
+            "id":item.stu.id,
+            "mentor_id":item.mentor.id,
+            "question_id":item.question.id,
+            "time_log":item.time_log,
+            "status":item.status
+        })    
     return MyResponse(
-        data=All.values(),
+        data=data,
         status=200,
         msg='获取审核日志成功'
     )
@@ -259,19 +275,23 @@ def updateSubmission(request):
     Submissions.objects.filter(id=id).update(status=status);
     # 20 ac  30 wa 
     if int(status) == 20:
-        sid = Submissions.objects.get(id=id).student.id
-        q = Submissions.objects.get(id=id).question
-
+        temp = Submissions.objects.get(id=id)
+        sid = temp.student.id
+        q = temp.question
+        print('id=',sid,q.score)
         with transaction.atomic():
+            Auditlog.objects.create(stu=temp.student,
+            mentor=temp.student.mid,question=q,status=int(status),time_log=time.strftime("%Y-%m-%d", time.localtime()))
             # print('len=',Aclog.objects.filter(student=sid).get(id) )
             if len(Aclog.objects.filter(student=sid,question=q.id)) == 0:
                 Aclog.objects.create(
                     question=Question.objects.get(id=q.id),
                     student=User.objects.get(id=sid),
                     time=time.strftime("%Y-%m-%d %H:%M", time.localtime()))
-                temp = User.objects.get(id=sid)
-                temp.score+=q.score
-                temp.save()
+                tempt= User.objects.get(id=sid)
+                print('ttt',tempt)
+                tempt.score+=q.score
+                tempt.save()
     return MyResponse(
         status=200,
         msg='操作成功'
