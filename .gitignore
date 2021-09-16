@@ -30,7 +30,7 @@
 *.exe
 *.out
 *.app
-ACM/__pycache__/
-my_api/__pycache__/
+/ACM/__pycache__/
+/my_api/__pycache__/
 ACM/migrations/
 ACM/server.py

@@ -29,6 +29,17 @@ class Aclog(models.Model):
         db_table = 'AcLog'
 
 
+class Alluser(models.Model):
+    name = models.CharField(max_length=25)
+    username = models.CharField(db_column='userName', unique=True, max_length=25)  # Field name made lowercase.
+    password = models.CharField(max_length=25)
+    type = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'AllUser'
+
+
 class Mentor(models.Model):
     username = models.CharField(db_column='userName', unique=True, max_length=255)  # Field name made lowercase.
     name = models.CharField(max_length=255)
@@ -186,6 +197,13 @@ class DjangoSession(models.Model):
     class Meta:
         managed = False
         db_table = 'django_session'
+
+
+class Info(models.Model):
+    info = models.CharField(max_length=255)
+    class Meta:
+        managed = False
+        db_table = 'info'
 
 
 class Question(models.Model):

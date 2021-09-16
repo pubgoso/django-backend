@@ -15,21 +15,23 @@ import time
 
 
 @api_view(['GET'])
-def test(request):
-    print('req=',request)
-    All = Root.objects.all().values();
-    # data = serializers.serialize('json', All)
-    return Response(
-        data=All,
-        msg=200
+def get_info(request):
+    All = Info.objects.all()
+
+    return MyResponse(
+        data = All.values(),
+        status=200,
+        msg='获取版本信息成功'
     )
+
 
 
 @api_view(['POST'])
 def login(request):
+
     userName = request.data.get('username')
     password = request.data.get('password')
-    
+    # check_ = 
     temp = Root.objects.filter(username=userName)
     
     if not temp:
@@ -37,24 +39,84 @@ def login(request):
             status=500,
             msg='用户名错误',
         )
-
-    temp=temp.filter(password=password)
-
-    if not temp:
+    now_user = temp.values()[0]
+    print(now_user)
+    if  now_user["password"] != password:
         return MyResponse(
             status=500,
             msg='密码错误'
         )
+    
+    _type  = Alluser.objects.get(username = userName).type
+
+    dataForm = {}
+
+    for item in now_user:
+        dataForm[item]=now_user[item]
+
+    dataForm["type"]=_type
+
+    print(dataForm)
     return MyResponse(
-        data=temp.values(),
+        data=dataForm,
         status=200,
         msg='登陆成功'
     )
     
+@api_view(['POST'])
+def addStudent(request):
+    username = request.data.get('userName')
+    if len(Alluser.objects.filter(username=username)) != 0:
+        return MyResponse(
+            status=500,
+            msg='用户名不可用'
+        )
+    password = request.data.get('password')
+    name = request.data.get('name')
+    class_field = request.data.get('class_field')
+    mid_id = request.data.get('mid_id')
+    with transaction.atomic():
+        Alluser.objects.create(name=name,username=username,password=password,type=3)
+        User.objects.create(name=name,username=username,password=password,class_field=class_field,mid=Mentor.objects.get(id=mid_id))
+        return MyResponse(
+            msg='添加成功',
+            status=200
+        )
+    return MyResponse(
+        status=500,
+        msg='错误'
+    )
+
+
+@api_view(['POST'])
+def addMentor(request):
+    username = request.data.get('userName')
+    if len(Alluser.objects.filter(username=username)) != 0:
+        return MyResponse(
+            status=500,
+            msg='用户名不可用'
+        )
+    password = request.data.get('password')
+    name = request.data.get('name')
+
+    print(username)
+    with transaction.atomic():
+        Alluser.objects.create(name=name,username=username,password=password,type=2)
+        Mentor.objects.create(name=name,username=username,password=password)
+        return MyResponse(
+            msg='添加成功',
+            status=200
+        )
+    print('nowwd')
+    return MyResponse(
+        status=500,
+        msg='错误'
+    )
+
 
 @api_view(['GET'])
 def studentList(request):
-    All= User.objects.all().order_by('score')
+    All= User.objects.all().order_by('-score')
     # for item in All:
     #     print('ddd=',item.Mentor)
     return MyResponse(
@@ -78,8 +140,10 @@ def mentorList(request):
 def updateUser(request):
     id = request.data.get('id')
     mentor_id = request.data.get('mid_id')
+    password = request.data.get('password')
     data = User.objects.get(id=id)
     data.mid_id = mentor_id
+    data.password = password
     data.save()
     return MyResponse(
         status=200,
@@ -198,7 +262,6 @@ def updateSubmission(request):
         sid = Submissions.objects.get(id=id).student.id
         q = Submissions.objects.get(id=id).question
 
-        print('sdsd===',sid,q.id)
         with transaction.atomic():
             # print('len=',Aclog.objects.filter(student=sid).get(id) )
             if len(Aclog.objects.filter(student=sid,question=q.id)) == 0:
